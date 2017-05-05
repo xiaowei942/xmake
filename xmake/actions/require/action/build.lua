@@ -70,6 +70,24 @@ function _build_for_cmakelists(package)
     _build_for_makefile(package)
 end
 
+-- build for msbuild
+function _build_for_msbuild(package)
+
+    -- search for *.sln first
+    local slns = os.files("*.sln")
+    if #slns > 0 then
+        -- found *.sln, build all of them
+        for _, file in ipairs(slns) do
+            -- deal with "\""
+            local arg, _ = file:gsub("\"", "\\\"")
+            os.vrun("msbuild \"" .. arg .. "\"")
+        end
+    else
+        -- build *prog
+        os.vrun("msbuild")
+    end
+end
+
 -- on build the given package
 function _on_build_package(package)
 
@@ -81,6 +99,8 @@ function _on_build_package(package)
     ,   {"CMakeLists.txt",  _build_for_cmakelists   }
     ,   {"configure",       _build_for_configure    }
     ,   {"[mM]akefile",     _build_for_makefile     }
+    ,   {"*.sln",           _build_for_msbuild      }
+    ,   {"*proj",           _build_for_msbuild      }
     }
 
     -- attempt to build it
